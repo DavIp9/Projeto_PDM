@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1012571195233",
+    "project_id": "softinsa-badges-ruben",
+    "storage_bucket": "softinsa-badges-ruben.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1012571195233:android:b9f03414608656751d2720",
+        "android_client_info": {
+          "package_name": "com.example.projeto_pdm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa64adBoDC_9QB4eqSBLQ86bJTC8ixkE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
