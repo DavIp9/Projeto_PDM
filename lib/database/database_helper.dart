@@ -541,14 +541,15 @@ CREATE TABLE UTILIZADOR (
     ''');
   }
 
-  Future<void> submeterCandidaturaComEvidencias(
+  Future<int> submeterCandidaturaComEvidencias(
       int idUtilizador, int idNivel, Map<int, String> evidencias) async {
     final db = await database;
+    int idCandidatura = 0;
 
     await db.transaction((txn) async {
       final candRes = await txn
           .rawQuery('SELECT MAX(ID_CANDIDATURA) as maxId FROM CANDIDATURA');
-      int idCandidatura = (candRes.first['maxId'] as int? ?? 0) + 1;
+      idCandidatura = (candRes.first['maxId'] as int? ?? 0) + 1;
 
       await txn.insert('CANDIDATURA', {
         'ID_CANDIDATURA': idCandidatura,
@@ -589,7 +590,33 @@ CREATE TABLE UTILIZADOR (
           'TAMANHOBYTES': 1024,
         });
       }
+
+      final notRes = await txn.rawQuery('SELECT MAX(ID_NOTIFICACAO) as maxId FROM NOTIFICACOES');
+      int idNotif = (notRes.first['maxId'] as int? ?? 0) + 1;
+
+      final nameRes = await txn.rawQuery('''
+        SELECT B.NOME_BADGE, N.NOME_NIVEL 
+        FROM NIVEL N 
+        JOIN BADGE B ON N.ID_BADGE = B.ID_BADGE 
+        WHERE N.ID_NIVEL = ?
+      ''', [idNivel]);
+      final bName = nameRes.isNotEmpty ? nameRes.first['NOME_BADGE'] as String : 'Badge';
+      final nName = nameRes.isNotEmpty ? nameRes.first['NOME_NIVEL'] as String : 'Nível';
+
+      await txn.insert('NOTIFICACOES', {
+        'ID_NOTIFICACAO': idNotif,
+        'ID_BADGEOBTIDO': null,
+        'ID_CANDIDATURA': idCandidatura,
+        'ID_UTILIZADOR': idUtilizador,
+        'TIPO_NOTIFICACAO': 'Submissao',
+        'MENSAGEM': 'Submeteste as evidências para a candidatura ao badge "$bName" ($nName).',
+        'DATACRIACAO': DateTime.now().toString().split(' ')[0],
+        'FASE': 'Nao Lida',
+        'TITULO': 'Candidatura Submetida',
+      });
     });
+
+    return idCandidatura;
   }
 
   Future<String> obterNomePerfil(int idPerfil) async {
