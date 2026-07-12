@@ -382,7 +382,7 @@ CREATE TABLE UTILIZADOR (
       'ID_UTILIZADOR': nextId,
       'ID_SERVICE_LINE': null,
       'ID_AREA': idArea,
-      'ID_PERFIL': 1, // Consultor por padrão
+      'ID_PERFIL': 1,
       'NOME_UTILIZADOR': nome,
       'EMAIL': email,
       'PASSWORD': password,
@@ -391,6 +391,7 @@ CREATE TABLE UTILIZADOR (
       'BADGES_TOTAL': 0,
       'DATAINGRESSO': DateTime.now().toString().split(' ')[0],
       'ESTADO': 'Inativo',
+      'PRIMEIRO_LOGIN': 1,
       'URLCERTIFICADO': null,
       'URLFOTOPERFIL': 'p1.png',
     });
@@ -591,7 +592,8 @@ CREATE TABLE UTILIZADOR (
         });
       }
 
-      final notRes = await txn.rawQuery('SELECT MAX(ID_NOTIFICACAO) as maxId FROM NOTIFICACOES');
+      final notRes = await txn
+          .rawQuery('SELECT MAX(ID_NOTIFICACAO) as maxId FROM NOTIFICACOES');
       int idNotif = (notRes.first['maxId'] as int? ?? 0) + 1;
 
       final nameRes = await txn.rawQuery('''
@@ -600,8 +602,10 @@ CREATE TABLE UTILIZADOR (
         JOIN BADGE B ON N.ID_BADGE = B.ID_BADGE 
         WHERE N.ID_NIVEL = ?
       ''', [idNivel]);
-      final bName = nameRes.isNotEmpty ? nameRes.first['NOME_BADGE'] as String : 'Badge';
-      final nName = nameRes.isNotEmpty ? nameRes.first['NOME_NIVEL'] as String : 'Nível';
+      final bName =
+          nameRes.isNotEmpty ? nameRes.first['NOME_BADGE'] as String : 'Badge';
+      final nName =
+          nameRes.isNotEmpty ? nameRes.first['NOME_NIVEL'] as String : 'Nível';
 
       await txn.insert('NOTIFICACOES', {
         'ID_NOTIFICACAO': idNotif,
@@ -609,7 +613,8 @@ CREATE TABLE UTILIZADOR (
         'ID_CANDIDATURA': idCandidatura,
         'ID_UTILIZADOR': idUtilizador,
         'TIPO_NOTIFICACAO': 'Submissao',
-        'MENSAGEM': 'Submeteste as evidências para a candidatura ao badge "$bName" ($nName).',
+        'MENSAGEM':
+            'Submeteste as evidências para a candidatura ao badge "$bName" ($nName).',
         'DATACRIACAO': DateTime.now().toString().split(' ')[0],
         'FASE': 'Nao Lida',
         'TITULO': 'Candidatura Submetida',
