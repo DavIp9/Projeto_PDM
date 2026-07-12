@@ -15,6 +15,8 @@ class Utilizador {
   final String dataIngresso;
   final String estado;
 
+  final int primeiroLogin;
+
   final String? urlCertificado;
   final String? urlFotoPerfil;
 
@@ -31,13 +33,12 @@ class Utilizador {
     required this.badgesTotal,
     required this.dataIngresso,
     required this.estado,
+    required this.primeiroLogin,
     this.urlCertificado,
     this.urlFotoPerfil,
   });
 
-  factory Utilizador.fromMap(
-    Map<String, dynamic> map,
-  ) {
+  factory Utilizador.fromMap(Map<String, dynamic> map) {
     return Utilizador(
       idUtilizador: map['ID_UTILIZADOR'],
       idServiceLine: map['ID_SERVICE_LINE'],
@@ -47,10 +48,11 @@ class Utilizador {
       email: map['EMAIL'],
       password: map['PASSWORD'],
       telefone: map['TELEFONE'],
-      pontuacaoTotal: map['PONTUACAOTOTAL'],
-      badgesTotal: map['BADGES_TOTAL'],
+      pontuacaoTotal: map['PONTUACAOTOTAL'] ?? 0,
+      badgesTotal: map['BADGES_TOTAL'] ?? 0,
       dataIngresso: map['DATAINGRESSO'],
       estado: map['ESTADO'],
+      primeiroLogin: map['PRIMEIRO_LOGIN'] ?? 1,
       urlCertificado: map['URLCERTIFICADO'],
       urlFotoPerfil: map['URLFOTOPERFIL'],
     );
@@ -70,6 +72,7 @@ class Utilizador {
       'BADGES_TOTAL': badgesTotal,
       'DATAINGRESSO': dataIngresso,
       'ESTADO': estado,
+      'PRIMEIRO_LOGIN': primeiroLogin,
       'URLCERTIFICADO': urlCertificado,
       'URLFOTOPERFIL': urlFotoPerfil,
     };
