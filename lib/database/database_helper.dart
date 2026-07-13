@@ -719,6 +719,23 @@ CREATE TABLE UTILIZADOR (
   }
 }
 
+Future<Utilizador?> obterUtilizadorPorEmail(String email) async {
+    final db = await database;
+
+    final resultado = await db.query(
+      'UTILIZADOR',
+      where: 'EMAIL = ?',
+      whereArgs: [email],
+      limit: 1,
+    );
+
+    if (resultado.isEmpty) {
+      return null;
+    }
+
+    return Utilizador.fromMap(resultado.first);
+  }
+
 class Session {
   static Utilizador? utilizador;
 }
