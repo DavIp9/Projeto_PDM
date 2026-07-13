@@ -126,39 +126,17 @@ INSERT INTO BADGE (ID_BADGE, ID_NIVEL, NOME_BADGE, DESCRICAO, VALIDADE, DATACRIA
 (3, NULL, 'Sénior LowCode', 'Arquitetura', 730, '2025-01-01', 'b3.png', 30, 'Ouro', 'Normal'),
 (4, NULL, 'Esp. LowCode', 'Referência', 730, '2025-01-01', 'b4.png', 40, 'Diamante', 'Normal'),
 (5, NULL, 'Líder LowCode', 'Tech Lead', 1095, '2025-01-01', 'b5.png', 50, 'Platina', 'Normal'),
-
 (6, NULL, 'Júnior DevOps', 'Linux/Git', 365, '2025-01-01', 'b6.png', 10, 'Bronze', 'Normal'),
 (7, NULL, 'Mid DevOps', 'CI/CD', 365, '2025-01-01', 'b7.png', 20, 'Prata', 'Normal'),
 (8, NULL, 'Sénior DevOps', 'Kubernetes', 730, '2025-01-01', 'b8.png', 30, 'Ouro', 'Normal'),
 (9, NULL, 'Esp. DevOps', 'Terraform', 730, '2025-01-01', 'b9.png', 40, 'Diamante', 'Normal'),
 (10, NULL, 'Líder DevOps', 'Cloud Arch', 1095, '2025-01-01', 'b10.png', 50, 'Platina', 'Normal'),
-
 (11, NULL, 'Júnior Data', 'SQL/BI', 365, '2025-01-01', 'b11.png', 10, 'Bronze', 'Normal'),
 (12, NULL, 'Mid Data', 'Python/ETL', 365, '2025-01-01', 'b12.png', 20, 'Prata', 'Normal'),
 (13, NULL, 'Sénior Data', 'Big Data', 730, '2025-01-01', 'b13.png', 30, 'Ouro', 'Normal'),
 (14, NULL, 'Esp. Data', 'Machine Learning', 730, '2025-01-01', 'b14.png', 40, 'Diamante', 'Normal'),
 (15, NULL, 'Líder Data', 'IA Strategist', 1095, '2025-01-01', 'b15.png', 50, 'Platina', 'Normal'),
-
-(16, NULL, 'Badge Cooperativo', 'Concluir projeto com 2 pessoas', 0, '2025-01-01', 'b16.png', 50, 'Especial', 'Especial'),
-
-(17, NULL, 'LowCode Integrator', 'Integração com APIs REST', 730, '2025-01-01', 'b17.png', 35, 'Ouro', 'Normal'),
-(18, NULL, 'LowCode Performance', 'Otimização de aplicações OutSystems', 730, '2025-01-01', 'b18.png', 45, 'Diamante', 'Normal'),
-(19, NULL, 'LowCode Architect', 'Arquitetura Enterprise OutSystems', 1095, '2025-01-01', 'b19.png', 60, 'Platina', 'Normal'),
-
-(20, NULL, 'DevOps Containers', 'Docker e gestão de containers', 730, '2025-01-01', 'b20.png', 35, 'Ouro', 'Normal'),
-(21, NULL, 'DevOps Security', 'DevSecOps e segurança de pipelines', 730, '2025-01-01', 'b21.png', 45, 'Diamante', 'Normal'),
-(22, NULL, 'DevOps Architect', 'Arquitetura Cloud e automação', 1095, '2025-01-01', 'b22.png', 60, 'Platina', 'Normal'),
-
-(23, NULL, 'Data Analyst', 'Análise avançada e visualização de dados', 730, '2025-01-01', 'b23.png', 35, 'Ouro', 'Normal'),
-(24, NULL, 'Data Engineer', 'Pipelines e engenharia de dados', 730, '2025-01-01', 'b24.png', 45, 'Diamante', 'Normal'),
-(25, NULL, 'Data Architect', 'Arquitetura de plataformas de dados', 1095, '2025-01-01', 'b25.png', 60, 'Platina', 'Normal'),
-
-(26, NULL, 'Badge Mentor', 'Ajudar 5 colegas em candidaturas', 0, '2025-01-01', 'b26.png', 60, 'Especial', 'Especial'),
-(27, NULL, 'Badge Inovação', 'Apresentar uma solução inovadora', 0, '2025-01-01', 'b27.png', 70, 'Especial', 'Especial'),
-(28, NULL, 'Badge Persistência', 'Submeter candidaturas durante 3 meses consecutivos', 0, '2025-01-01', 'b28.png', 50, 'Especial', 'Especial'),
-(29, NULL, 'Badge Excelência', 'Obter aprovação sem pedidos de correção', 0, '2025-01-01', 'b29.png', 80, 'Especial', 'Especial'),
-(30, NULL, 'Badge Comunidade', 'Participar em 10 iniciativas internas', 0, '2025-01-01', 'b30.png', 60, 'Especial', 'Especial');
-
+(16, NULL, 'Badge Cooperativo', 'Concluir projeto com 2 pessoas' , 0, '2025-01-01', 'b15.png', 50, 'Especial', 'Especial');
 
 INSERT INTO NIVEL (ID_NIVEL, ID_BADGE, ID_AREA, NOME_NIVEL, DESCRICAO, URLIMAGEM, FASE, DIFICULDADE) VALUES 
 (1, 1, 1, 'Lvl 1 LC', 'Base', 'n1.png', 'Ativo', 'Fácil'), 
@@ -177,8 +155,7 @@ INSERT INTO NIVEL (ID_NIVEL, ID_BADGE, ID_AREA, NOME_NIVEL, DESCRICAO, URLIMAGEM
 (14, 14, 3, 'Lvl 4 DA', 'Modelos', 'n14.png', 'Ativo', 'Muito Difícil'),
 (15, 15, 3, 'Lvl 5 DA', 'Estratégia', 'n15.png', 'Ativo', 'Mestre');
 
-
-UPDATE BADGE SET ID_NIVEL = ID_BADGE WHERE ID_BADGE <= 30;
+UPDATE BADGE SET ID_NIVEL = ID_BADGE WHERE ID_BADGE <= 15;
 
 -- =========================================================================
 -- REQUISITOS 

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'ecra_registo.dart';
 import 'ecra_home.dart';
-import 'alterar_password_primeiro_login.dart';
 import '../database/database_helper.dart';
 import '../models/utilizador_model.dart';
 import 'recuperar_pass.dart';
@@ -20,141 +17,47 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
   bool _keepLoggedIn = false;
-  bool _aEntrar = false;
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _login() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+  void _login() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, preencha todos os campos.'),
-        ),
+        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
       );
       return;
     }
 
-    setState(() {
-      _aEntrar = true;
-    });
-
     try {
-      final firebaseCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      await firebaseCredential.user?.reload();
-
-      final firebaseUser = FirebaseAuth.instance.currentUser;
-
-      if (firebaseUser == null || !firebaseUser.emailVerified) {
-        await FirebaseAuth.instance.signOut();
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Confirme o email antes de iniciar sessão.',
-            ),
-          ),
-        );
-        return;
-      }
-
-      final user =
-          await DatabaseHelper.instance.autenticarUtilizador(email, password);
-
-      if (user == null) {
-        await FirebaseAuth.instance.signOut();
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Credenciais incorretas.')),
-        );
-        return;
-      }
-
-      if (user.estado != 'Ativo') {
-        await FirebaseAuth.instance.signOut();
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Esta conta ainda não está ativa.'),
-          ),
-        );
-        return;
-      }
-
-      Session.utilizador = user;
-
-      if (!mounted) return;
-
-      if (user.primeiroLogin == 1) {
+      final user = await DatabaseHelper.instance.autenticarUtilizador(email, password);
+      
+      if (user != null) {
+        if (user.estado != 'Ativo') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Esta conta ainda não está ativa.')),
+          );
+          return;
+        }
+        
+        Session.utilizador = user;
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => AlterarPasswordPrimeiroLoginScreen(
-              email: email,
-              passwordAtual: password,
-            ),
+            builder: (_) => const MainDashboardScreen(),
           ),
         );
-        return;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Credenciais incorretas.')),
+        );
       }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const MainDashboardScreen(),
-        ),
-      );
-    } on FirebaseAuthException catch (e) {
-      String mensagem = 'Erro ao iniciar sessão.';
-
-      if (e.code == 'invalid-credential' ||
-          e.code == 'wrong-password' ||
-          e.code == 'user-not-found' ||
-          e.code == 'invalid-login-credentials') {
-        mensagem = 'Email ou password incorretos.';
-      } else if (e.code == 'invalid-email') {
-        mensagem = 'O email introduzido não é válido.';
-      } else if (e.code == 'too-many-requests') {
-        mensagem = 'Demasiadas tentativas. Tente novamente mais tarde.';
-      }
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(mensagem)),
-      );
     } catch (e) {
-      if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao iniciar sessão: $e')),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _aEntrar = false;
-        });
-      }
     }
   }
 
@@ -168,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 60),
+              // Logo Placeholder
               const Center(
                 child: Text(
                   'SOFTINSA',
@@ -189,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 60),
+
               CustomTextField(
                 controller: _emailController,
                 labelText: 'Email',
@@ -197,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
+
               CustomTextField(
                 controller: _passwordController,
                 labelText: 'Password',
@@ -205,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 isPassword: true,
               ),
               const SizedBox(height: 16),
+
               Row(
                 children: [
                   SizedBox(
@@ -218,8 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       },
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
+                          borderRadius: BorderRadius.circular(4)),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -227,11 +133,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 32),
+
               CustomButton(
-                text: _aEntrar ? 'A entrar...' : 'Entrar',
-                onPressed: _aEntrar ? null : _login,
+                text: 'Entrar',
+                onPressed: _login,
               ),
               const SizedBox(height: 16),
+
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
@@ -249,6 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -257,11 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignUpScreen(),
-                        ),
-                      );
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const SignUpScreen()));
                     },
                     child: const Text(
                       'Registe-se.',

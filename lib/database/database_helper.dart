@@ -382,7 +382,7 @@ CREATE TABLE UTILIZADOR (
       'ID_UTILIZADOR': nextId,
       'ID_SERVICE_LINE': null,
       'ID_AREA': idArea,
-      'ID_PERFIL': 1,
+      'ID_PERFIL': 1, // Consultor por padrão
       'NOME_UTILIZADOR': nome,
       'EMAIL': email,
       'PASSWORD': password,
@@ -391,7 +391,6 @@ CREATE TABLE UTILIZADOR (
       'BADGES_TOTAL': 0,
       'DATAINGRESSO': DateTime.now().toString().split(' ')[0],
       'ESTADO': 'Inativo',
-      'PRIMEIRO_LOGIN': 1,
       'URLCERTIFICADO': null,
       'URLFOTOPERFIL': 'p1.png',
     });
@@ -511,15 +510,48 @@ CREATE TABLE UTILIZADOR (
     List<Map<String, dynamic>> recBadges = [];
     if (idArea != null) {
       recBadges = await db.rawQuery('''
-        SELECT B.ID_BADGE, B.NOME_BADGE as name, B.URL_IMAGEM as urlImagem, N.NOME_NIVEL as level
+        SELECT B.ID_BADGE, B.NOME_BADGE as name, B.URL_IMAGEM as urlImagem, 
+               N.NOME_NIVEL as level, N.ID_NIVEL as idNivel, B.PONTOS as points, 
+               B.RARIDADE as rarity, A.NOME_AREA as area
         FROM BADGE B
         JOIN NIVEL N ON B.ID_BADGE = N.ID_BADGE
-        WHERE N.ID_AREA = ? AND B.ID_BADGE NOT IN (
-          SELECT ID_BADGE FROM BADGE_OBTIDO WHERE ID_UTILIZADOR = ?
-        )
+        LEFT JOIN AREA A ON N.ID_AREA = A.ID_AREA
+        WHERE N.ID_AREA = ? 
+          AND NOT EXISTS (
+            SELECT 1 FROM BADGE_OBTIDO BO 
+            WHERE BO.ID_BADGE = B.ID_BADGE AND BO.ID_UTILIZADOR = ?
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM CANDIDATURA C
+            JOIN NIVEL NV ON C.ID_NIVEL = NV.ID_NIVEL
+            WHERE NV.ID_BADGE = B.ID_BADGE AND C.ID_UTILIZADOR = ?
+          )
         LIMIT 2
-      ''', [idArea, idUtilizador]);
+      ''', [idArea, idUtilizador, idUtilizador]);
     }
+
+    final rankingRes = await db.rawQuery('''
+      SELECT ID_UTILIZADOR FROM UTILIZADOR ORDER BY COALESCE(PONTUACAOTOTAL, 0) DESC
+    ''');
+    int rankingPos = 1;
+    for (int i = 0; i < rankingRes.length; i++) {
+      if (rankingRes[i]['ID_UTILIZADOR'] == idUtilizador) {
+        rankingPos = i + 1;
+        break;
+      }
+    }
+
+    final totalCandRes = await db.rawQuery('''
+      SELECT 
+        COUNT(CASE WHEN FASE = 'Aprovada' THEN 1 END) as approvedCount,
+        COUNT(CASE WHEN FASE = 'Rejeitada' THEN 1 END) as rejectedCount
+      FROM CANDIDATURA
+      WHERE ID_UTILIZADOR = ?
+    ''', [idUtilizador]);
+    int approved = (totalCandRes.first['approvedCount'] as int?) ?? 0;
+    int rejected = (totalCandRes.first['rejectedCount'] as int?) ?? 0;
+    int totalResolved = approved + rejected;
+    int successRate = totalResolved > 0 ? ((approved / totalResolved) * 100).round() : 0;
 
     return {
       'pontos': user['PONTUACAOTOTAL'] ?? 0,
@@ -527,6 +559,8 @@ CREATE TABLE UTILIZADOR (
       'badges': badgesRes,
       'candidaturas': candRes,
       'recomendados': recBadges,
+      'rankingPosition': rankingPos,
+      'successRate': successRate,
     };
   }
 
@@ -592,8 +626,7 @@ CREATE TABLE UTILIZADOR (
         });
       }
 
-      final notRes = await txn
-          .rawQuery('SELECT MAX(ID_NOTIFICACAO) as maxId FROM NOTIFICACOES');
+      final notRes = await txn.rawQuery('SELECT MAX(ID_NOTIFICACAO) as maxId FROM NOTIFICACOES');
       int idNotif = (notRes.first['maxId'] as int? ?? 0) + 1;
 
       final nameRes = await txn.rawQuery('''
@@ -602,10 +635,8 @@ CREATE TABLE UTILIZADOR (
         JOIN BADGE B ON N.ID_BADGE = B.ID_BADGE 
         WHERE N.ID_NIVEL = ?
       ''', [idNivel]);
-      final bName =
-          nameRes.isNotEmpty ? nameRes.first['NOME_BADGE'] as String : 'Badge';
-      final nName =
-          nameRes.isNotEmpty ? nameRes.first['NOME_NIVEL'] as String : 'Nível';
+      final bName = nameRes.isNotEmpty ? nameRes.first['NOME_BADGE'] as String : 'Badge';
+      final nName = nameRes.isNotEmpty ? nameRes.first['NOME_NIVEL'] as String : 'Nível';
 
       await txn.insert('NOTIFICACOES', {
         'ID_NOTIFICACAO': idNotif,
@@ -613,8 +644,7 @@ CREATE TABLE UTILIZADOR (
         'ID_CANDIDATURA': idCandidatura,
         'ID_UTILIZADOR': idUtilizador,
         'TIPO_NOTIFICACAO': 'Submissao',
-        'MENSAGEM':
-            'Submeteste as evidências para a candidatura ao badge "$bName" ($nName).',
+        'MENSAGEM': 'Submeteste as evidências para a candidatura ao badge "$bName" ($nName).',
         'DATACRIACAO': DateTime.now().toString().split(' ')[0],
         'FASE': 'Nao Lida',
         'TITULO': 'Candidatura Submetida',
